@@ -13,17 +13,23 @@
   Written by Limor Fried/Ladyada for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
-
+//Modified to work with esp8266 and added functionality to control
+//gpio using the fingerprint and also display results using an i2c lcd.
 
 #include <Adafruit_Fingerprint.h>
+#include <LiquidCrystal_I2C.h>
+//this depends on the type of lcd you use.
+LiquidCrystal_I2C lcd(0x3F,16,2);
 
+//set gpio 14 as an output to control devices such as a relay or led.
+pinMode(14, OUTPUT);
 
 #if (defined(__AVR__) || defined(ESP8266)) && !defined(__AVR_ATmega2560__)
 // For UNO and others without hardware serial, we must use software serial...
 // pin #2 is IN from sensor (GREEN wire)
 // pin #3 is OUT from arduino  (WHITE wire)
 // Set up the serial port to use softwareserial..
-SoftwareSerial mySerial(2, 3);
+SoftwareSerial mySerial(13, 15);
 
 #else
 // On Leonardo/M0/etc, others with hardware serial, use hardware serial!
@@ -37,6 +43,10 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
 void setup()
 {
+  //init lcd on setup
+  lcd.init();
+  lcd.clear();         
+  lcd.backlight();
   Serial.begin(9600);
   while (!Serial);  // For Yun/Leo/Micro/Zero/...
   delay(100);
@@ -75,6 +85,18 @@ void setup()
 
 void loop()                     // run over and over again
 {
+  //print things to the lcd
+    lcd.clear();         
+    lcd.setCursor(0,0);
+    lcd.print("F");
+    lcd.print("I");
+    lcd.print("N");
+    lcd.print("G");
+    lcd.print("E");
+    lcd.print("R");
+    lcd.setCursor(0,1);
+    lcd.print("M");
+    lcd.print("E");
   getFingerprintID();
   delay(50);            //don't ned to run this at full speed.
 }
@@ -126,12 +148,37 @@ uint8_t getFingerprintID() {
   // OK converted!
   p = finger.fingerSearch();
   if (p == FINGERPRINT_OK) {
+    //if the fingerprint returns ok then gpio 14 goes high and prints to i2c lcd.
+    digitalWrite(14, HIGH);
+    lcd.clear();         
+    lcd.setCursor(0,0);
+    //some lcd display may need to print single characters to work. I can't find a way to fix it.
+    lcd.print("T");
+    lcd.print("H");
+    lcd.print("A");
+    lcd.print("N");
+    lcd.print("K");
+    lcd.setCursor(0,1);
+    lcd.print("Y");
+    lcd.print("O");
+    delay(1500);
+    //after a certain amount of time the gpio goes low.
+    digitalWrite(14,LOW);
     Serial.println("Found a print match!");
   } else if (p == FINGERPRINT_PACKETRECIEVEERR) {
     Serial.println("Communication error");
     return p;
   } else if (p == FINGERPRINT_NOTFOUND) {
+    //print when fingerprint is not recognized.
     Serial.println("Did not find a match");
+    lcd.clear();         
+    lcd.setCursor(0,0);
+    lcd.print("P");
+    lcd.print("A");
+    lcd.print("K");
+    lcd.print("Y");
+    lcd.print("U");
+    delay(1500);
     return p;
   } else {
     Serial.println("Unknown error");
