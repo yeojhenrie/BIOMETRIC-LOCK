@@ -14,6 +14,9 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
+//modified to work with Lolin esp8266
+//when connecting a serial device always make sure to connect TX to RX and RX to TX.
+//we can use software emulated serial in order to communicate with the fingerprint module.
 #include <Adafruit_Fingerprint.h>
 
 
@@ -22,7 +25,9 @@
 // pin #2 is IN from sensor (GREEN wire)
 // pin #3 is OUT from arduino  (WHITE wire)
 // Set up the serial port to use softwareserial..
-SoftwareSerial mySerial(2, 3);
+//D7 or gpio13 should be connected to TX
+//D8 or gpio15 should be conencted to RX
+SoftwareSerial mySerial(13, 15);
 
 #else
 // On Leonardo/M0/etc, others with hardware serial, use hardware serial!
